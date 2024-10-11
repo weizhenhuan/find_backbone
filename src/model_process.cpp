@@ -128,20 +128,59 @@ Result ModelProcess::CreateInput()
     }
 
     size_t templateSize = aclmdlGetInputSizeByIndex(modelDesc_, 0);
+    void *templateHost;
+    aclError ret = aclrtMallocHost(&templateHost, templateSize);
+    if (ret != ACL_SUCCESS) {
+        ERROR_LOG("can't malloc host template, size is %zu, create template failed, errorCode is %d",
+            templateSize, static_cast<int32_t>(ret));
+        return FAILED;
+    }
+    for (int i = 0; i < templateSize / sizeof(float); i++) {
+        reinterpret_cast<float*>(templateHost)[i] = 3;
+    }
+
     void *templateBuffer = nullptr;
-    aclError ret = aclrtMalloc(&templateBuffer, templateSize, ACL_MEM_MALLOC_NORMAL_ONLY);
+    ret = aclrtMalloc(&templateBuffer, templateSize, ACL_MEM_MALLOC_NORMAL_ONLY);
     if (ret != ACL_SUCCESS) {
         ERROR_LOG("can't malloc buffer, size is %zu, create template failed, errorCode is %d",
             templateSize, static_cast<int32_t>(ret));
         return FAILED;
     }
 
+    ret = aclrtMemcpy(templateBuffer, templateSize, templateHost, templateSize,
+                      ACL_MEMCPY_HOST_TO_DEVICE
+                          );
+    if (ret != ACL_SUCCESS) {
+        ERROR_LOG("memcpy template from host to device error, errorCode is %d", static_cast<int32_t>(ret));
+        return FAILED;
+    }
+
     size_t searchSize = aclmdlGetInputSizeByIndex(modelDesc_, 1);
+    void *searchHost;
+    ret = aclrtMallocHost(&searchHost, searchSize);
+    if (ret != ACL_SUCCESS) {
+        ERROR_LOG("can't malloc host search, size is %zu, create template failed, errorCode is %d",
+            searchSize, static_cast<int32_t>(ret));
+        return FAILED;
+    }
+
+    for (int i = 0; i < searchSize / sizeof(float); i++) {
+        reinterpret_cast<float*>(templateHost)[i] = 3;
+    }
+
     void *searchBuffer = nullptr;
     ret = aclrtMalloc(&searchBuffer, searchSize, ACL_MEM_MALLOC_NORMAL_ONLY);
     if (ret != ACL_SUCCESS) {
         ERROR_LOG("can't malloc buffer, size is %zu, create search failed, errorCode is %d",
             searchSize, static_cast<int32_t>(ret));
+        return FAILED;
+    }
+
+    ret = aclrtMemcpy(searchBuffer, searchSize, searchHost, searchSize,
+                      ACL_MEMCPY_HOST_TO_DEVICE
+                          );
+    if (ret != ACL_SUCCESS) {
+        ERROR_LOG("memcpy search from host to device error, errorCode is %d", static_cast<int32_t>(ret));
         return FAILED;
     }
 
