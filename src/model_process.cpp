@@ -135,8 +135,9 @@ Result ModelProcess::CreateInput()
             templateSize, static_cast<int32_t>(ret));
         return FAILED;
     }
+    float* tempTemplate = static_cast<float*>(templateHost);
     for (int i = 0; i < templateSize / sizeof(float); i++) {
-        reinterpret_cast<float*>(templateHost)[i] = 3;
+        tempTemplate[i] = 3.0f;
     }
 
     void *templateBuffer = nullptr;
@@ -164,8 +165,9 @@ Result ModelProcess::CreateInput()
         return FAILED;
     }
 
+    float* tempSearch = static_cast<float*>(searchHost);
     for (int i = 0; i < searchSize / sizeof(float); i++) {
-        reinterpret_cast<float*>(searchHost)[i] = 3;
+        tempSearch[i] = 3.0f;
     }
 
     void *searchBuffer = nullptr;
@@ -371,7 +373,14 @@ void ModelProcess::OutputModelResult()
         } else {
             outData = reinterpret_cast<float*>(data);
         }
-
+        // for (size_t j = 0; j < len / 4; j++) {
+        //     // ERROR_LOG("%zu: %d: %f XXXXXXXXXXXXXXXXXXXXX", i, j, outData[len - j - 1]);
+        //     if (outData[j] != 3.0f) {
+        //         ERROR_LOG("%zu: %zu: %f XXXXXXXXXXXXXXXXXXXXX", i, j, outData[j]);
+        //         break;
+        //     }
+            
+        // }
         if (i == 0) {
             INFO_LOG("output: [%f, %f, %f, %f]", outData[0], outData[1], outData[2], outData[3]);
         } else if (i == 1) {
@@ -415,7 +424,7 @@ void ModelProcess::DestroyOutput()
 
 Result ModelProcess::Execute()
 {
-    constexpr int epoch = 1;
+    constexpr int epoch = 1000;
     auto start = std::chrono::steady_clock::now();
     for (int i = 0; i < epoch; i++) {
         aclError ret = aclmdlExecute(modelId_, input_, output_);
