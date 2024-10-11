@@ -165,7 +165,7 @@ Result ModelProcess::CreateInput()
     }
 
     for (int i = 0; i < searchSize / sizeof(float); i++) {
-        reinterpret_cast<float*>(templateHost)[i] = 3;
+        reinterpret_cast<float*>(searchHost)[i] = 3;
     }
 
     void *searchBuffer = nullptr;
