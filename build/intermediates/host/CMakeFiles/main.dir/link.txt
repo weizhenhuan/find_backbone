@@ -1,0 +1,1 @@
+/usr/bin/g++ CMakeFiles/main.dir/utils.cpp.o CMakeFiles/main.dir/model_process.cpp.o CMakeFiles/main.dir/sample_process.cpp.o CMakeFiles/main.dir/main.cpp.o -o /home/HwHiAiUser/workspace/vit/track2/out/main   -L/usr/local/Ascend/ascend-toolkit/latest/runtime/lib64/stub  -lascendcl -lstdc++ 

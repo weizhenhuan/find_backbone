@@ -1,0 +1,22 @@
+[
+{
+  "directory": "/home/HwHiAiUser/workspace/vit/track2/build/intermediates/host",
+  "command": "/usr/bin/g++  -I/usr/local/Ascend/ascend-toolkit/latest/runtime/include -I/home/HwHiAiUser/workspace/vit/track2/src/../inc -std=c++11 -o CMakeFiles/main.dir/utils.cpp.o -c /home/HwHiAiUser/workspace/vit/track2/src/utils.cpp",
+  "file": "/home/HwHiAiUser/workspace/vit/track2/src/utils.cpp"
+},
+{
+  "directory": "/home/HwHiAiUser/workspace/vit/track2/build/intermediates/host",
+  "command": "/usr/bin/g++  -I/usr/local/Ascend/ascend-toolkit/latest/runtime/include -I/home/HwHiAiUser/workspace/vit/track2/src/../inc -std=c++11 -o CMakeFiles/main.dir/model_process.cpp.o -c /home/HwHiAiUser/workspace/vit/track2/src/model_process.cpp",
+  "file": "/home/HwHiAiUser/workspace/vit/track2/src/model_process.cpp"
+},
+{
+  "directory": "/home/HwHiAiUser/workspace/vit/track2/build/intermediates/host",
+  "command": "/usr/bin/g++  -I/usr/local/Ascend/ascend-toolkit/latest/runtime/include -I/home/HwHiAiUser/workspace/vit/track2/src/../inc -std=c++11 -o CMakeFiles/main.dir/sample_process.cpp.o -c /home/HwHiAiUser/workspace/vit/track2/src/sample_process.cpp",
+  "file": "/home/HwHiAiUser/workspace/vit/track2/src/sample_process.cpp"
+},
+{
+  "directory": "/home/HwHiAiUser/workspace/vit/track2/build/intermediates/host",
+  "command": "/usr/bin/g++  -I/usr/local/Ascend/ascend-toolkit/latest/runtime/include -I/home/HwHiAiUser/workspace/vit/track2/src/../inc -std=c++11 -o CMakeFiles/main.dir/main.cpp.o -c /home/HwHiAiUser/workspace/vit/track2/src/main.cpp",
+  "file": "/home/HwHiAiUser/workspace/vit/track2/src/main.cpp"
+}
+]
