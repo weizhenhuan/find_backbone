@@ -371,21 +371,17 @@ void ModelProcess::OutputModelResult()
         } else {
             outData = reinterpret_cast<float*>(data);
         }
-        map<float, unsigned int, greater<float> > resultMap;
-        for (unsigned int j = 0; j < len / sizeof(float); ++j) {
-            resultMap[*outData] = j;
-            outData++;
+
+        if (i == 0) {
+            INFO_LOG("output: [%f, %f, %f, %f]", outData[0], outData[1], outData[2], outData[3]);
+        } else if (i == 1) {
+            INFO_LOG("score_map_ctr.3: [%f, %f, %f, %f, .......]", outData[0], outData[1], outData[2], outData[3]);
+        } else if (i == 2) {
+            INFO_LOG("size_map: [%f, %f, %f, %f, .......]", outData[0], outData[1], outData[2], outData[3]);
+        } else if (i == 3) {
+            INFO_LOG("x: [%f, %f, %f, %f, .......]", outData[0], outData[1], outData[2], outData[3]);
         }
 
-        int cnt = 0;
-        for (auto it = resultMap.begin(); it != resultMap.end(); ++it) {
-            // print top 5
-            if (++cnt > 5) {
-                break;
-            }
-
-            INFO_LOG("top %d: index[%d] value[%lf]", cnt, it->second, it->first);
-        }
         if (!g_isDevice) {
             ret = aclrtFreeHost(outHostData);
             if (ret != ACL_SUCCESS) {
@@ -419,7 +415,7 @@ void ModelProcess::DestroyOutput()
 
 Result ModelProcess::Execute()
 {
-    constexpr int epoch = 1000;
+    constexpr int epoch = 1;
     auto start = std::chrono::steady_clock::now();
     for (int i = 0; i < epoch; i++) {
         aclError ret = aclmdlExecute(modelId_, input_, output_);
