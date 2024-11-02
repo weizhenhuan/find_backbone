@@ -60,6 +60,7 @@ public:
     * @return result
     */
     Result CreateInput();
+    Result CreateInput1();
 
     /**
     * @brief destroy input resource

@@ -9,11 +9,15 @@
 */
 #include "model_process.h"
 #include <iostream>
+#include <cstdio>
 #include <map>
 #include <sstream>
 #include <algorithm>
 #include <functional>
 #include "utils.h"
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
 using namespace std;
 extern bool g_isDevice;
@@ -113,7 +117,56 @@ Result ModelProcess::GetInputSizeByIndex(const size_t index, size_t &inputSize)
     return SUCCESS;
 }
 
-Result ModelProcess::CreateInput()
+Result ModelProcess::CreateInput() {
+      if (modelDesc_ == nullptr) {
+        ERROR_LOG("no model description, create ouput failed");
+        return FAILED;
+    }
+
+    input_ = aclmdlCreateDataset();
+    if (input_ == nullptr) {
+        ERROR_LOG("can't create dataset, create input failed");
+        return FAILED;
+    }
+
+    size_t inputSize = aclmdlGetNumInputs(modelDesc_);
+    // INFO_LOG("output num: %zu", outputSize);
+    for (size_t i = 0; i < inputSize; ++i) {
+        size_t modelInputSize = aclmdlGetInputSizeByIndex(modelDesc_, i);
+        // INFO_LOG("  %zu", modelOutputSize);
+
+        void *outputBuffer = nullptr;
+        aclError ret = aclrtMalloc(&outputBuffer, modelInputSize, ACL_MEM_MALLOC_NORMAL_ONLY);
+        if (ret != ACL_SUCCESS) {
+            ERROR_LOG("can't malloc buffer, size is %zu, create output failed, errorCode is %d",
+                modelInputSize, static_cast<int32_t>(ret));
+            return FAILED;
+        }
+
+        aclDataBuffer *outputData = aclCreateDataBuffer(outputBuffer, modelInputSize);
+        if (outputData == nullptr) {
+            ERROR_LOG("can't create data buffer, create output failed");
+            (void)aclrtFree(outputBuffer);
+            return FAILED;
+        }
+
+        ret = aclmdlAddDatasetBuffer(input_, outputData);
+        if (ret != ACL_SUCCESS) {
+            ERROR_LOG("can't add data buffer, create output failed, errorCode is %d",
+                static_cast<int32_t>(ret));
+            (void)aclrtFree(outputBuffer);
+            (void)aclDestroyDataBuffer(outputData);
+            return FAILED;
+        }
+    }
+
+    INFO_LOG("create model input success");
+
+    return SUCCESS;
+}
+
+
+Result ModelProcess::CreateInput1()
 {
     // om used in this sample has only one input
     if (modelDesc_ == nullptr) {
@@ -136,8 +189,9 @@ Result ModelProcess::CreateInput()
         return FAILED;
     }
     float* tempTemplate = static_cast<float*>(templateHost);
-    for (int i = 0; i < templateSize / sizeof(float); i++) {
-        tempTemplate[i] = 3.0f;
+    int index = 0;
+    for (int i = 0; i < templateSize / 4; i++) {
+      tempTemplate[i] = 0.02 * i;
     }
 
     void *templateBuffer = nullptr;
@@ -156,35 +210,35 @@ Result ModelProcess::CreateInput()
         return FAILED;
     }
 
-    size_t searchSize = aclmdlGetInputSizeByIndex(modelDesc_, 1);
-    void *searchHost;
-    ret = aclrtMallocHost(&searchHost, searchSize);
-    if (ret != ACL_SUCCESS) {
-        ERROR_LOG("can't malloc host search, size is %zu, create template failed, errorCode is %d",
-            searchSize, static_cast<int32_t>(ret));
-        return FAILED;
-    }
+    // size_t searchSize = aclmdlGetInputSizeByIndex(modelDesc_, 1);
+    // void *searchHost;
+    // ret = aclrtMallocHost(&searchHost, searchSize);
+    // if (ret != ACL_SUCCESS) {
+    //     ERROR_LOG("can't malloc host search, size is %zu, create template failed, errorCode is %d",
+    //         searchSize, static_cast<int32_t>(ret));
+    //     return FAILED;
+    // }
 
-    float* tempSearch = static_cast<float*>(searchHost);
-    for (int i = 0; i < searchSize / sizeof(float); i++) {
-        tempSearch[i] = 3.0f;
-    }
+    // float* tempSearch = static_cast<float*>(searchHost);
+    // for (int i = 0; i < searchSize / sizeof(float); i++) {
+    //     tempSearch[i] = 0.0f;
+    // }
 
-    void *searchBuffer = nullptr;
-    ret = aclrtMalloc(&searchBuffer, searchSize, ACL_MEM_MALLOC_NORMAL_ONLY);
-    if (ret != ACL_SUCCESS) {
-        ERROR_LOG("can't malloc buffer, size is %zu, create search failed, errorCode is %d",
-            searchSize, static_cast<int32_t>(ret));
-        return FAILED;
-    }
+    // void *searchBuffer = nullptr;
+    // ret = aclrtMalloc(&searchBuffer, searchSize, ACL_MEM_MALLOC_NORMAL_ONLY);
+    // if (ret != ACL_SUCCESS) {
+    //     ERROR_LOG("can't malloc buffer, size is %zu, create search failed, errorCode is %d",
+    //         searchSize, static_cast<int32_t>(ret));
+    //     return FAILED;
+    // }
 
-    ret = aclrtMemcpy(searchBuffer, searchSize, searchHost, searchSize,
-                      ACL_MEMCPY_HOST_TO_DEVICE
-                          );
-    if (ret != ACL_SUCCESS) {
-        ERROR_LOG("memcpy search from host to device error, errorCode is %d", static_cast<int32_t>(ret));
-        return FAILED;
-    }
+    // ret = aclrtMemcpy(searchBuffer, searchSize, searchHost, searchSize,
+    //                   ACL_MEMCPY_HOST_TO_DEVICE
+    //                       );
+    // if (ret != ACL_SUCCESS) {
+    //     ERROR_LOG("memcpy search from host to device error, errorCode is %d", static_cast<int32_t>(ret));
+    //     return FAILED;
+    // }
 
     aclDataBuffer *templateData = aclCreateDataBuffer(templateBuffer, templateSize);
     if (templateData == nullptr) {
@@ -192,11 +246,11 @@ Result ModelProcess::CreateInput()
         return FAILED;
     }
 
-    aclDataBuffer *search = aclCreateDataBuffer(searchBuffer, searchSize);
-    if (search == nullptr) {
-        ERROR_LOG("can't create data buffer, create search failed");
-        return FAILED;
-    }
+    // aclDataBuffer *search = aclCreateDataBuffer(searchBuffer, searchSize);
+    // if (search == nullptr) {
+    //     ERROR_LOG("can't create data buffer, create search failed");
+    //     return FAILED;
+    // }
 
     ret = aclmdlAddDatasetBuffer(input_, templateData);
     if (ret != ACL_SUCCESS) {
@@ -206,13 +260,13 @@ Result ModelProcess::CreateInput()
         return FAILED;
     }
 
-    ret = aclmdlAddDatasetBuffer(input_, search);
-    if (ret != ACL_SUCCESS) {
-        ERROR_LOG("add input dataset buffer failed, errorCode is %d", static_cast<int32_t>(ret));
-        (void)aclDestroyDataBuffer(search);
-        search = nullptr;
-        return FAILED;
-    }
+    // ret = aclmdlAddDatasetBuffer(input_, search);
+    // if (ret != ACL_SUCCESS) {
+    //     ERROR_LOG("add input dataset buffer failed, errorCode is %d", static_cast<int32_t>(ret));
+    //     (void)aclDestroyDataBuffer(search);
+    //     search = nullptr;
+    //     return FAILED;
+    // }
     INFO_LOG("create model input success");
 
     // INFO_LOG("input num: %zu, template size: %zu, seach size: %zu", aclmdlGetNumInputs(modelDesc_), templateSize, searchSize);
@@ -349,7 +403,7 @@ void ModelProcess::OutputModelResult()
         aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer(output_, i);
         void* data = aclGetDataBufferAddr(dataBuffer);
         uint32_t len = aclGetDataBufferSizeV2(dataBuffer);
-
+        // INFO_LOG("output len for %zu: %u",i, len / 4);
         void *outHostData = nullptr;
         aclError ret = ACL_SUCCESS;
         float *outData = nullptr;
@@ -381,15 +435,26 @@ void ModelProcess::OutputModelResult()
         //     }
             
         // }
-        if (i == 0) {
-            INFO_LOG("output: [%f, %f, %f, %f]", outData[0], outData[1], outData[2], outData[3]);
-        } else if (i == 1) {
-            INFO_LOG("score_map_ctr.3: [%f, %f, %f, %f, .......]", outData[0], outData[1], outData[2], outData[3]);
-        } else if (i == 2) {
-            INFO_LOG("size_map: [%f, %f, %f, %f, .......]", outData[0], outData[1], outData[2], outData[3]);
-        } else if (i == 3) {
-            INFO_LOG("x: [%f, %f, %f, %f, .......]", outData[0], outData[1], outData[2], outData[3]);
+
+        fprintf(stdout, "output%zu: [", i);
+        if (i == 4 || i == 5 || i == 6 || i == 7) {
+            fprintf(stdout, " %lld]\n", *reinterpret_cast<long long*>(data));
+        } else {
+        for (uint32_t j = 0; j < len && j < 9; j++) {
+            fprintf(stdout, "%.8f, ", outData[j]);
         }
+            fprintf(stdout," ...]\n");
+
+        }
+        // if (i == 0) {
+        //     INFO_LOG("output: [%f, %f, %f, %f]", outData[0], outData[1], outData[2], outData[3]);
+        // } else if (i == 1) {
+        //     INFO_LOG("score_map_ctr.3: [%f, %f, %f, %f, .......]", outData[0], outData[1], outData[2], outData[3]);
+        // } else if (i == 2) {
+        //     INFO_LOG("size_map: [%f, %f, %f, %f, .......]", outData[0], outData[1], outData[2], outData[3]);
+        // } else if (i == 3) {
+        //     INFO_LOG("x: [%f, %f, %f, %f, .......]", outData[0], outData[1], outData[2], outData[3]);
+        // }
 
         if (!g_isDevice) {
             ret = aclrtFreeHost(outHostData);

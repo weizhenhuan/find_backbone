@@ -80,7 +80,15 @@ Result SampleProcess::Process()
 {
     // model init
     ModelProcess modelProcess;
-    const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/efficient_vit2.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/convnext_femto.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/siamese_32.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/sm_model-x_allowfp32to16.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/sm_model-x.om";
+    // const char *omModelPath = "/home/HwHiAiUser/woarkspace/vit/om/sm_model-x_fp16.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/shufflenet_v2_x0_5.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/mixformer_v2.om";
+    const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/HiT_tiny.om";
+
 
     Result ret = modelProcess.LoadModel(omModelPath);
     if (ret != SUCCESS) {
