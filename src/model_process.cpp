@@ -143,19 +143,19 @@ Result ModelProcess::CreateInput() {
             return FAILED;
         }
 
-        aclDataBuffer *outputData = aclCreateDataBuffer(inputBuffer, modelInputSize);
-        if (outputData == nullptr) {
+        aclDataBuffer *inputData = aclCreateDataBuffer(inputBuffer, modelInputSize);
+        if (inputData == nullptr) {
             ERROR_LOG("can't create data buffer, create output failed");
             (void)aclrtFree(inputBuffer);
             return FAILED;
         }
 
-        ret = aclmdlAddDatasetBuffer(input_, outputData);
+        ret = aclmdlAddDatasetBuffer(input_, inputData);
         if (ret != ACL_SUCCESS) {
             ERROR_LOG("can't add data buffer, create output failed, errorCode is %d",
                 static_cast<int32_t>(ret));
             (void)aclrtFree(inputBuffer);
-            (void)aclDestroyDataBuffer(outputData);
+            (void)aclDestroyDataBuffer(inputData);
             return FAILED;
         }
     }
