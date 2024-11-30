@@ -135,18 +135,18 @@ Result ModelProcess::CreateInput() {
         size_t modelInputSize = aclmdlGetInputSizeByIndex(modelDesc_, i);
         // INFO_LOG("  %zu", modelOutputSize);
 
-        void *outputBuffer = nullptr;
-        aclError ret = aclrtMalloc(&outputBuffer, modelInputSize, ACL_MEM_MALLOC_NORMAL_ONLY);
+        void *inputBuffer = nullptr;
+        aclError ret = aclrtMalloc(&inputBuffer, modelInputSize, ACL_MEM_MALLOC_NORMAL_ONLY);
         if (ret != ACL_SUCCESS) {
             ERROR_LOG("can't malloc buffer, size is %zu, create output failed, errorCode is %d",
                 modelInputSize, static_cast<int32_t>(ret));
             return FAILED;
         }
 
-        aclDataBuffer *outputData = aclCreateDataBuffer(outputBuffer, modelInputSize);
+        aclDataBuffer *outputData = aclCreateDataBuffer(inputBuffer, modelInputSize);
         if (outputData == nullptr) {
             ERROR_LOG("can't create data buffer, create output failed");
-            (void)aclrtFree(outputBuffer);
+            (void)aclrtFree(inputBuffer);
             return FAILED;
         }
 
@@ -154,7 +154,7 @@ Result ModelProcess::CreateInput() {
         if (ret != ACL_SUCCESS) {
             ERROR_LOG("can't add data buffer, create output failed, errorCode is %d",
                 static_cast<int32_t>(ret));
-            (void)aclrtFree(outputBuffer);
+            (void)aclrtFree(inputBuffer);
             (void)aclDestroyDataBuffer(outputData);
             return FAILED;
         }
@@ -210,35 +210,35 @@ Result ModelProcess::CreateInput1()
         return FAILED;
     }
 
-    // size_t searchSize = aclmdlGetInputSizeByIndex(modelDesc_, 1);
-    // void *searchHost;
-    // ret = aclrtMallocHost(&searchHost, searchSize);
-    // if (ret != ACL_SUCCESS) {
-    //     ERROR_LOG("can't malloc host search, size is %zu, create template failed, errorCode is %d",
-    //         searchSize, static_cast<int32_t>(ret));
-    //     return FAILED;
-    // }
+    size_t searchSize = aclmdlGetInputSizeByIndex(modelDesc_, 1);
+    void *searchHost;
+    ret = aclrtMallocHost(&searchHost, searchSize);
+    if (ret != ACL_SUCCESS) {
+        ERROR_LOG("can't malloc host search, size is %zu, create template failed, errorCode is %d",
+            searchSize, static_cast<int32_t>(ret));
+        return FAILED;
+    }
 
-    // float* tempSearch = static_cast<float*>(searchHost);
-    // for (int i = 0; i < searchSize / sizeof(float); i++) {
-    //     tempSearch[i] = 0.0f;
-    // }
+    float* tempSearch = static_cast<float*>(searchHost);
+    for (int i = 0; i < searchSize / sizeof(float); i++) {
+        tempSearch[i] = 0.0f;
+    }
 
-    // void *searchBuffer = nullptr;
-    // ret = aclrtMalloc(&searchBuffer, searchSize, ACL_MEM_MALLOC_NORMAL_ONLY);
-    // if (ret != ACL_SUCCESS) {
-    //     ERROR_LOG("can't malloc buffer, size is %zu, create search failed, errorCode is %d",
-    //         searchSize, static_cast<int32_t>(ret));
-    //     return FAILED;
-    // }
+    void *searchBuffer = nullptr;
+    ret = aclrtMalloc(&searchBuffer, searchSize, ACL_MEM_MALLOC_NORMAL_ONLY);
+    if (ret != ACL_SUCCESS) {
+        ERROR_LOG("can't malloc buffer, size is %zu, create search failed, errorCode is %d",
+            searchSize, static_cast<int32_t>(ret));
+        return FAILED;
+    }
 
-    // ret = aclrtMemcpy(searchBuffer, searchSize, searchHost, searchSize,
-    //                   ACL_MEMCPY_HOST_TO_DEVICE
-    //                       );
-    // if (ret != ACL_SUCCESS) {
-    //     ERROR_LOG("memcpy search from host to device error, errorCode is %d", static_cast<int32_t>(ret));
-    //     return FAILED;
-    // }
+    ret = aclrtMemcpy(searchBuffer, searchSize, searchHost, searchSize,
+                      ACL_MEMCPY_HOST_TO_DEVICE
+                          );
+    if (ret != ACL_SUCCESS) {
+        ERROR_LOG("memcpy search from host to device error, errorCode is %d", static_cast<int32_t>(ret));
+        return FAILED;
+    }
 
     aclDataBuffer *templateData = aclCreateDataBuffer(templateBuffer, templateSize);
     if (templateData == nullptr) {
@@ -246,11 +246,11 @@ Result ModelProcess::CreateInput1()
         return FAILED;
     }
 
-    // aclDataBuffer *search = aclCreateDataBuffer(searchBuffer, searchSize);
-    // if (search == nullptr) {
-    //     ERROR_LOG("can't create data buffer, create search failed");
-    //     return FAILED;
-    // }
+    aclDataBuffer *search = aclCreateDataBuffer(searchBuffer, searchSize);
+    if (search == nullptr) {
+        ERROR_LOG("can't create data buffer, create search failed");
+        return FAILED;
+    }
 
     ret = aclmdlAddDatasetBuffer(input_, templateData);
     if (ret != ACL_SUCCESS) {
@@ -260,13 +260,13 @@ Result ModelProcess::CreateInput1()
         return FAILED;
     }
 
-    // ret = aclmdlAddDatasetBuffer(input_, search);
-    // if (ret != ACL_SUCCESS) {
-    //     ERROR_LOG("add input dataset buffer failed, errorCode is %d", static_cast<int32_t>(ret));
-    //     (void)aclDestroyDataBuffer(search);
-    //     search = nullptr;
-    //     return FAILED;
-    // }
+    ret = aclmdlAddDatasetBuffer(input_, search);
+    if (ret != ACL_SUCCESS) {
+        ERROR_LOG("add input dataset buffer failed, errorCode is %d", static_cast<int32_t>(ret));
+        (void)aclDestroyDataBuffer(search);
+        search = nullptr;
+        return FAILED;
+    }
     INFO_LOG("create model input success");
 
     // INFO_LOG("input num: %zu, template size: %zu, seach size: %zu", aclmdlGetNumInputs(modelDesc_), templateSize, searchSize);

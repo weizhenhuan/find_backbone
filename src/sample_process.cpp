@@ -87,8 +87,15 @@ Result SampleProcess::Process()
     // const char *omModelPath = "/home/HwHiAiUser/woarkspace/vit/om/sm_model-x_fp16.om";
     // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/shufflenet_v2_x0_5.om";
     // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/mixformer_v2.om";
-    const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/HiT_tiny.om";
-
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/HiT_small.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/LightTrack.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/HCAT.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/resnet.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/mobilenet_without_template.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/convnext_tiny_as_backbone_without_template.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/resnet18_as_backbone_without_template.om";
+    // const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/resnet18.om";
+    const char *omModelPath = "/home/HwHiAiUser/workspace/vit/om/convnextv2_nano.om";
 
     Result ret = modelProcess.LoadModel(omModelPath);
     if (ret != SUCCESS) {
